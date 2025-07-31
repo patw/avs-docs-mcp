@@ -37,7 +37,7 @@ pip install -r requirements.txt
 
 ## Usage
 
-1. Ingest documents:
+1. Ingest documents in the docs/ directory:
 ```bash
 python ingest_docs.py
 ```
