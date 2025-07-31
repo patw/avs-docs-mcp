@@ -12,6 +12,8 @@ Sample data included is for Atlas Vector Search!
 - Provides a FastMCP server for semantic document search
 - Supports configurable vector dimensions and chunking strategies
 
+![Claude Desktop Tool Call](screenshot.png)
+
 ## Prerequisites
 
 - Python 3.10+
