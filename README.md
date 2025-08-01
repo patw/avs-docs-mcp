@@ -77,12 +77,8 @@ Copy `sample.env` to `.env` and Edit to configure:
 
 ## Future Improvements
 
-- Implement hybrid search combining vector and text search using `$rankFusion`
-- Add Parent Document Retrieval to return full documents containing relevant chunks
-- Support additional file formats (PDF, Word, etc.)
-- Add authentication and rate limiting to the MCP server
-- Implement caching for frequent queries
-- Add monitoring and logging
+- Implement hybrid search combining vector and text search using `$rankFusion` (when MongoDB 8.1 is GA on Atlas)
+- Support additional file formats (PDF, Word, etc.) with Docling
 
 ## Contributing
 
