@@ -12,6 +12,25 @@ Sample data included is for Atlas Vector Search!
 - Provides a FastMCP server for semantic document search
 - Supports configurable vector dimensions and chunking strategies
 
+### Available MCP Tools
+
+The document search server provides these tools:
+
+1. **search_documents_vector(query: str, limit: int = 5)**
+   - Primary search method using vector similarity
+   - Returns document chunks with metadata and similarity scores
+   - Best for semantic/meaning-based queries
+
+2. **search_documents_lexicaly(query: str, limit: int = 1)**
+   - Fallback search using lexical/text matching
+   - Returns full parent documents with search scores
+   - Useful when vector search doesn't find good matches
+
+3. **get_parent_document(parent_id: str)**
+   - Retrieves the complete parent document by ID
+   - Returns original content and file path
+   - Use after search to get full context for a chunk
+
 ![Claude Desktop Tool Call](screenshot.png)
 
 ## Prerequisites
