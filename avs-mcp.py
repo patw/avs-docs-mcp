@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os
 import sys
 import requests
+from bson import ObjectId
 
 # Load environment variables
 load_dotenv()
@@ -23,6 +24,7 @@ try:
     client = MongoClient(MONGO_URI)
     db = client[DB_NAME]
     chunks_collection = db[CHUNK_COLLECTION]
+    parents_collection = db[os.getenv("PARENT_COLLECTION")]
     print("✅ Connected to MongoDB successfully!")
 except Exception as e:
     print(f"❌ Could not connect to MongoDB: {e}")
@@ -91,6 +93,28 @@ def search_documents(query: str, limit: int = 5):
     
     results = list(chunks_collection.aggregate(pipeline))
     return results
+
+@mcp.tool
+def get_parent_document(parent_id: str):
+    """
+    Retrieve the full parent document by its ID.
+    
+    Args:
+        parent_id: The MongoDB _id of the parent document
+        
+    Returns:
+        The complete parent document with all original content
+    """
+    from bson import ObjectId
+    
+    try:
+        parent = parents_collection.find_one(
+            {"_id": ObjectId(parent_id)},
+            {"_id": 0, "original_content": 1, "file_path": 1}
+        )
+        return parent
+    except Exception as e:
+        return {"error": f"Failed to get parent document: {str(e)}"}
 
 if __name__ == "__main__":
     print("\n📄 Document Search Server is running!")
