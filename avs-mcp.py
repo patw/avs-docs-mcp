@@ -11,7 +11,9 @@ load_dotenv()
 MONGO_URI = os.getenv('MONGO_URI')
 DB_NAME = os.getenv('DB_NAME')
 CHUNK_COLLECTION = os.getenv('CHUNK_COLLECTION')
+PARENT_COLLECTION = os.getenv('PARENT_COLLECTION')
 VECTOR_INDEX_NAME = os.getenv('VECTOR_INDEX_NAME')
+TEXT_INDEX_NAME = os.getenv('TEXT_INDEX_NAME')
 VOYAGE_API_KEY = os.getenv('VOYAGE_API_KEY')
 VOYAGE_DIMENSIONS = int(os.getenv('VOYAGE_DIMENSIONS'))
 
@@ -24,7 +26,7 @@ try:
     client = MongoClient(MONGO_URI)
     db = client[DB_NAME]
     chunks_collection = db[CHUNK_COLLECTION]
-    parents_collection = db[os.getenv("PARENT_COLLECTION")]
+    parents_collection = db[PARENT_COLLECTION]
     print("✅ Connected to MongoDB successfully!")
 except Exception as e:
     print(f"❌ Could not connect to MongoDB: {e}")
@@ -56,9 +58,9 @@ def get_query_embedding(query):
         sys.exit(1)
 
 @mcp.tool
-def search_documents(query: str, limit: int = 5):
+def search_documents_vector(query: str, limit: int = 5):
     """
-    Search document chunks using vector similarity.
+    Search document chunks using vector similarity.  This is the primary search method.
     
     Args:
         query: The search query to find relevant document chunks
@@ -84,6 +86,7 @@ def search_documents(query: str, limit: int = 5):
         {
             '$project': {
                 'text': 1,
+                'parent_id': 1,
                 'metadata': 1,
                 'score': {'$meta': 'vectorSearchScore'},
                 '_id': 0
@@ -95,9 +98,48 @@ def search_documents(query: str, limit: int = 5):
     return results
 
 @mcp.tool
+def search_documents_lexicaly(query: str, limit: int = 1):
+    """
+    Search documents using lexical similarity.  This can help if vector search is not finding good results.
+    
+    Args:
+        query: The search query to find relevant document chunks
+        limit: Maximum number of results to return (default: 3)
+    
+    Returns:
+        List of documents and similarity scores
+    """
+
+    # Perform text search
+    pipeline = [
+        {
+            "$search": {
+                "index": TEXT_INDEX_NAME,
+                "text": {
+                    "query": query,
+                    "path": "original_content"
+                }
+        }
+        },
+        {
+            '$limit': limit   
+        },
+        {
+            '$project': {
+                'original_content': 1,
+                'score': { '$meta': 'searchScore'},
+                '_id': 0
+            }
+        }
+    ]
+    
+    results = list(parents_collection.aggregate(pipeline))
+    return results
+
+@mcp.tool
 def get_parent_document(parent_id: str):
     """
-    Retrieve the full parent document by its ID.
+    Retrieve the full parent document by its ID. This provides a more complete answer to some questions.
     
     Args:
         parent_id: The MongoDB _id of the parent document
@@ -105,8 +147,7 @@ def get_parent_document(parent_id: str):
     Returns:
         The complete parent document with all original content
     """
-    from bson import ObjectId
-    
+
     try:
         parent = parents_collection.find_one(
             {"_id": ObjectId(parent_id)},

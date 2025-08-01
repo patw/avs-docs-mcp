@@ -126,7 +126,33 @@ def create_vector_index():
 
     # Verify index was created
     indexes = list(chunks_collection.list_search_indexes())
-    print(f"Current indexes: {[idx['name'] for idx in indexes]}")
+    print(f"Current chunks indexes: {[idx['name'] for idx in indexes]}")
+
+def create_text_index():
+    """Create a text search index for the parents collection"""
+    index_model = SearchIndexModel(
+        definition={
+            "analyzer": "lucene.english",
+            "searchAnalyzer": "lucene.english",
+            "mappings": {
+                "dynamic": False,
+                "fields": {
+                    "original_content": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        name=os.getenv("TEXT_INDEX_NAME")
+    )
+
+    # Create the index
+    result = parents_collection.create_search_index(model=index_model)
+    print(f"Created text search index: {result}")
+
+    # Verify index was created
+    indexes = list(chunks_collection.list_search_indexes())
+    print(f"Current parent indexes: {[idx['name'] for idx in indexes]}")
 
 if __name__ == "__main__":
     # Clear existing collections
@@ -137,5 +163,7 @@ if __name__ == "__main__":
     except:
         pass
     
+    # Process documents and create indexes
     process_markdown_files()
     create_vector_index()
+    create_text_index()
