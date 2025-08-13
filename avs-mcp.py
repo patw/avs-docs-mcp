@@ -60,7 +60,7 @@ def get_query_embedding(query):
 @mcp.tool
 def search_documents_vector(query: str, limit: int = 5):
     """
-    Search document chunks using vector similarity.  This is the primary search method.
+    Search document chunks semantically, using vector similarity.  This is the primary search method.
     
     Args:
         query: The search query to find relevant document chunks
@@ -100,7 +100,8 @@ def search_documents_vector(query: str, limit: int = 5):
 @mcp.tool
 def search_documents_lexicaly(query: str, limit: int = 1):
     """
-    Search documents using lexical similarity.  This can help if vector search is not finding good results.
+    Search documents using lexical similarity.  Anything in quotes should be searched with this method.
+    This can also help if vector search is not finding good results.
     
     Args:
         query: The search query to find relevant document chunks
@@ -127,6 +128,7 @@ def search_documents_lexicaly(query: str, limit: int = 1):
         {
             '$project': {
                 'original_content': 1,
+                'file_path': 1,
                 'score': { '$meta': 'searchScore'},
                 '_id': 0
             }
